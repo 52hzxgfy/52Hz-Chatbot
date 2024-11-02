@@ -627,7 +627,6 @@ export function Page() {
                   value={inputMessage}
                   onChange={(e) => {
                     setInputMessage(e.target.value);
-                    // 自动调整高度
                     e.target.style.height = 'auto';
                     e.target.style.height = e.target.scrollHeight + 'px';
                   }}
@@ -635,13 +634,13 @@ export function Page() {
                   placeholder={selectedFile 
                     ? "请输入您希望AI如何处理这个文件（例如：分析文件内容、提取关键信息等）..." 
                     : "在这里输入您的消息..."}
-                  className="flex-1 pl-10 p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white bg-opacity-60 resize-none min-h-[40px] max-h-[200px] overflow-y-auto"
+                  className="flex-1 pl-10 p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white bg-opacity-60 resize-none min-h-[40px] max-h-[200px] overflow-y-auto scrollbar-hide"
                   rows={1}
                 />
                 <Button 
                   onClick={handleSendMessage}
                   disabled={isProcessing || (!inputMessage.trim() && !selectedFile)}
-                  className="absolute right-2 bg-indigo-600 hover:bg-indigo-700 text-white h-6 w-6"
+                  className="absolute right-2 bg-indigo-600 hover:bg-indigo-700 text-white h-6 w-6 p-0 min-w-[24px]"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
