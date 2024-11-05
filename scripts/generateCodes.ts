@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-// 直接在文件中定义类型
+// 定义验证码类型
 interface VerificationCode {
   code: string;
   usageCount: number;
@@ -10,13 +10,15 @@ interface VerificationCode {
 
 // 生成6位随机数字验证码
 function generateRandomCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const min = 100000;
+  const max = 999999;
+  return Math.floor(min + Math.random() * (max - min + 1)).toString();
 }
 
 // 生成指定数量的验证码
 function generateVerificationCodes(count: number): VerificationCode[] {
   const codes: VerificationCode[] = [];
-  const usedCodes = new Set();
+  const usedCodes = new Set<string>();
 
   while (codes.length < count) {
     const code = generateRandomCode();
@@ -29,24 +31,32 @@ function generateVerificationCodes(count: number): VerificationCode[] {
       });
     }
   }
+
   return codes;
 }
 
-// 确保data目录存在
-const dataDir = path.join(process.cwd(), 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir);
+try {
+  // 获取项目根目录路径
+  const rootDir = path.resolve(__dirname, '..');
+  
+  // 确保 data 目录存在
+  const dataDir = path.join(rootDir, 'data');
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+
+  // 生成验证码
+  const codes = generateVerificationCodes(150);
+  
+  // 保存到文件
+  const filePath = path.join(dataDir, 'verification-codes.json');
+  fs.writeFileSync(filePath, JSON.stringify(codes, null, 2));
+
+  console.log('验证码生成成功！');
+  console.log(`生成的验证码已保存到: ${filePath}`);
+  console.log(`共生成 ${codes.length} 个验证码`);
+
+} catch (error) {
+  console.error('生成验证码时发生错误:', error);
+  process.exit(1);
 }
-
-// 生成150个验证码并保存到文件
-const codes = generateVerificationCodes(150);
-const filePath = path.join(dataDir, 'verification-codes.json');
-fs.writeFileSync(filePath, JSON.stringify(codes, null, 2));
-
-// 输出所有验证码到控制台，方便复制
-console.log('生成的验证码列表:');
-codes.forEach((code, index) => {
-  console.log(`${index + 1}. ${code.code}`);
-});
-
-console.log('\n已生成150个验证码并保存到 data/verification-codes.json');

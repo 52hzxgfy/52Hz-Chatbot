@@ -7,7 +7,8 @@
     "build": "next build --no-lint",
     "start": "next start",
     "lint": "next lint",
-    "generate-codes": "ts-node scripts/generateCodes.ts"
+    "generate-codes": "ts-node -P scripts/tsconfig.json scripts/generateCodes.ts",
+    "prebuild": "node -e \"process.env.SKIP_GENERATE_CODES || process.exit(0)\""
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
