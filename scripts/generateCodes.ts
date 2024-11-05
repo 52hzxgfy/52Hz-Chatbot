@@ -1,12 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-
-// 定义验证码类型
-interface VerificationCode {
-  code: string;
-  usageCount: number;
-  isValid: boolean;
-}
+import { VerificationCode } from './types';
 
 // 生成6位随机数字验证码
 function generateRandomCode(): string {

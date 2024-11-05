@@ -726,27 +726,27 @@
   },
   {
     "code": "714904",
-    "usageCount": 2,
+    "usageCount": 0,
     "isValid": true
   },
   {
     "code": "631558",
-    "usageCount": 2,
+    "usageCount": 0,
     "isValid": true
   },
   {
     "code": "758295",
-    "usageCount": 2,
+    "usageCount": 0,
     "isValid": true
   },
   {
     "code": "505329",
-    "usageCount": 2,
-    "isValid": false
+    "usageCount": 0,
+    "isValid": true
   },
   {
     "code": "451585",
-    "usageCount": 2,
-    "isValid": false
+    "usageCount": 0,
+    "isValid": true
   }
 ]
