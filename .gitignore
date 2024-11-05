@@ -34,3 +34,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 确保data目录不被忽略
+!data/
+!data/verification-codes.json

@@ -16,12 +16,12 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ role, content, onCopy, modelType }: ChatMessageProps) {
-  const handleCopy = async (textToCopy: string) => {
+  const handleCopy = async () => {
     if (onCopy) {
-      onCopy(textToCopy);
+      onCopy(content);
     } else {
       try {
-        await copy(textToCopy);
+        await copy(content);
         alert('已复制到剪贴板');
       } catch (error) {
         console.error('复制失败:', error);
@@ -72,7 +72,7 @@ export function ChatMessage({ role, content, onCopy, modelType }: ChatMessagePro
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleCopy(content)}
+              onClick={handleCopy}
               className="h-6 w-6"
             >
               <Copy className="h-4 w-4" />
@@ -91,31 +91,16 @@ export function ChatMessage({ role, content, onCopy, modelType }: ChatMessagePro
                     typeof cls === 'string' && cls.startsWith('language-')
                   );
                 
-                if (!isInline) {
-                  const codeContent = String(children).replace(/\n$/, '');
-                  return (
-                    <div className="relative">
-                      <pre className="bg-gray-100 dark:bg-gray-800 rounded-md p-4 overflow-x-auto">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleCopy(codeContent)}
-                          className="absolute top-2 right-2 h-7 w-7 bg-indigo-500 hover:bg-indigo-600 text-white shadow-md rounded-md transition-colors"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <code className={cn(
-                          "text-sm",
-                          match && `language-${match[1]}`
-                        )} {...props}>
-                          {codeContent}
-                        </code>
-                      </pre>
-                    </div>
-                  );
-                }
-                
-                return (
+                return !isInline ? (
+                  <pre className="bg-gray-100 dark:bg-gray-800 rounded-md p-4 overflow-x-auto">
+                    <code className={cn(
+                      "text-sm",
+                      match && `language-${match[1]}`
+                    )} {...props}>
+                      {String(children).replace(/\n$/, '')}
+                    </code>
+                  </pre>
+                ) : (
                   <code className="bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5" {...props}>
                     {children}
                   </code>

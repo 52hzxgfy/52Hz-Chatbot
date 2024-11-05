@@ -42,7 +42,6 @@ export function Page() {
   const groqService = useRef<GroqService | null>(null);
   const chatPool = useRef(ChatPoolManager.getInstance());
   const [isVerified, setIsVerified] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
   // 添加useEffect来初始化验证状态
   useEffect(() => {
@@ -532,11 +531,6 @@ export function Page() {
     };
   }, []);
 
-  // 添加搜索过滤函数
-  const filteredConversations = conversations.filter(conv =>
-    conv.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <div className="flex h-screen bg-gradient-to-br from-purple-100 to-indigo-200">
       {/* Sidebar */}
@@ -548,41 +542,8 @@ export function Page() {
           <Plus className="mr-2 h-4 w-4" /> 新建对话
         </Button>
         
-        {/* 添加搜索框 */}
-        <div className="relative mb-4">
-          <Input
-            type="text"
-            placeholder="搜索对话..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 bg-white/50 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-          />
-          <svg
-            className="absolute left-2 top-2.5 h-4 w-4 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-        
         <div className="flex-grow overflow-y-auto space-y-2">
-          {filteredConversations.map(conv => (
+          {conversations.map(conv => (
             <div 
               key={conv.id} 
               className={cn(
