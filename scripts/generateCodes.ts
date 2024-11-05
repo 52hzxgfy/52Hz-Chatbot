@@ -1,6 +1,6 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { VerificationCode } from './types';
+import fs from 'fs';
+import path from 'path';
+import { VerificationCode } from '@/lib/types';
 
 // 生成6位随机数字验证码
 function generateRandomCode(): string {

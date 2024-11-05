@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { VerificationCode } from '../lib/types';
+import { VerificationCode } from '@lib/types';
 
 // 生成6位随机数字
 function generateRandomCode(): string {
