@@ -10,6 +10,7 @@ export interface VerificationResponse {
   success: boolean;
   message: string;
   code?: string;
+  remainingUses?: number;
 }
 
 export type ModelType = 
