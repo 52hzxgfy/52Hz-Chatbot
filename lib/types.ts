@@ -40,3 +40,16 @@ export interface FileContent {
   fileData: FileData;
   text?: string;
 }
+
+// 添加验证码相关的类型定义
+export interface VerificationCode {
+  code: string;        // 6位数字验证码
+  usageCount: number;  // 使用次数
+  isValid: boolean;    // 是否有效
+}
+
+export interface VerificationResponse {
+  success: boolean;    // 验证是否成功
+  message: string;     // 响应消息
+  remainingUses?: number; // 剩余使用次数
+}

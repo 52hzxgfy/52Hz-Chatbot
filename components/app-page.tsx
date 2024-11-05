@@ -1,7 +1,6 @@
 "use client";
-
 import { useState, useRef, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Plus, Settings, Edit2, Trash2, Send, Paperclip, X, Copy } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Edit2, Trash2, Send, Paperclip, X, Copy } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -18,6 +17,8 @@ import { GroqService } from '@/lib/groq';
 import { Chat } from '@/components/chat';
 import { ChatPoolManager } from '@/lib/chatPoolManager';
 import { QwenService } from '@/lib/qwen';
+import { Settings as SettingsIcon } from 'lucide-react';
+import { Settings } from './settings';
 
 export function Page() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -40,6 +41,15 @@ export function Page() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const groqService = useRef<GroqService | null>(null);
   const chatPool = useRef(ChatPoolManager.getInstance());
+  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // 添加useEffect来初始化验证状态
+  useEffect(() => {
+    // 从localStorage读取验证状态
+    const verified = localStorage.getItem('isVerified') === 'true';
+    setIsVerified(verified);
+  }, []);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
   const openSettings = () => setIsSettingsOpen(true)
@@ -395,7 +405,7 @@ export function Page() {
 
       const chatInstance = await chatPool.current.getOrCreateChat(
         id,
-        conversation.modelType, // 使用对话保存的模型类型
+        conversation.modelType, // 使用对话保存的型类型
         apiKeys[conversation.modelType],
         history.map(msg => ({
           role: msg.role as "user" | "model",
@@ -414,7 +424,7 @@ export function Page() {
 
   // 监听第一轮对话完成
   useEffect(() => {
-    // 只有当没有当前对话ID且刚完成第一轮对话时才创建新的对话记录
+    // 只有当没有当对话ID且刚完成第一轮对话时才创建新的对话记录
     if (messages.length === 2 && !currentConversationId) {
       const title = messages[0].content.slice(0, 10) + (messages[0].content.length > 10 ? '...' : '');
       const newConversation: Conversation = {
@@ -449,7 +459,7 @@ export function Page() {
     }
   }, []);
 
-  // 对话记录更新时保存到 localStorage
+  // 对话记录更新时保存 localStorage
   useEffect(() => {
     localStorage.setItem('conversations', JSON.stringify(conversations));
   }, [conversations]);
@@ -484,6 +494,49 @@ export function Page() {
     }
   }, []);
 
+  const handleVerify = async (code: string) => {
+    try {
+      const response = await fetch('/api/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+      
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+      
+      setIsVerified(true);
+      localStorage.setItem('isVerified', 'true');
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    const verified = localStorage.getItem('isVerified') === 'true';
+    setIsVerified(verified);
+  }, []);
+
+  // 添加重置验证状态的函数
+  const resetVerification = () => {
+    localStorage.removeItem('isVerified');
+    setIsVerified(false);
+  };
+
+  // 在组件卸载时重置验证状态
+  useEffect(() => {
+    return () => {
+      resetVerification();
+    };
+  }, []);
+
+  // 添加搜索过滤函数
+  const filteredConversations = conversations.filter(conv =>
+    conv.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-purple-100 to-indigo-200">
       {/* Sidebar */}
@@ -495,8 +548,41 @@ export function Page() {
           <Plus className="mr-2 h-4 w-4" /> 新建对话
         </Button>
         
+        {/* 添加搜索框 */}
+        <div className="relative mb-4">
+          <Input
+            type="text"
+            placeholder="搜索对话..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-8 bg-white/50 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+          />
+          <svg
+            className="absolute left-2 top-2.5 h-4 w-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        
         <div className="flex-grow overflow-y-auto space-y-2">
-          {conversations.map(conv => (
+          {filteredConversations.map(conv => (
             <div 
               key={conv.id} 
               className={cn(
@@ -553,8 +639,8 @@ export function Page() {
             </div>
           ))}
         </div>
-        <Button variant="outline" className="mt-4 border-purple-300 text-purple-700 hover:bg-purple-100" onClick={openSettings}>
-          <Settings className="mr-2 h-4 w-4" /> 设置
+        <Button variant="outline" onClick={openSettings}>
+          <SettingsIcon className="mr-2 h-4 w-4" /> 设置
         </Button>
       </div>
 
@@ -588,7 +674,7 @@ export function Page() {
             </div>
           )}
         </div>
-        {/* 添加一个包装容器来控制输入框宽度 */}
+        {/* 一个包装容器来控制输入框宽度 */}
         <div className="w-full flex justify-center p-4">
           <div className="w-[70%]">
             <div className="flex flex-col space-y-2">
@@ -652,90 +738,20 @@ export function Page() {
 
       {/* Settings Modal */}
       {isSettingsOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-sm">
-          <div className="bg-white bg-opacity-90 p-6 rounded-lg w-[600px] max-h-[80vh] overflow-y-auto relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-              onClick={closeSettings}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-            <h2 className="text-2xl font-bold mb-4 text-indigo-800">设置</h2>
-            <Tabs defaultValue="api-connection">
-              <TabsList className="mb-4 bg-indigo-100">
-                <TabsTrigger value="api-connection" className="data-[state=active]:bg-indigo-200">模型 API 连接</TabsTrigger>
-                <TabsTrigger value="system-prompt" className="data-[state=active]:bg-indigo-200">系统提示词</TabsTrigger>
-              </TabsList>
-              <TabsContent value="api-connection">
-                {/* Llama 3.1 70B API 配置 */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-indigo-700 mb-2">Llama 3.1 70B API 密钥</label>
-                  <Input
-                    type="password"
-                    value={apiKeys["Llama 3.1 70B"]}
-                    onChange={(e) => setApiKeys({...apiKeys, ["Llama 3.1 70B"]: e.target.value})}
-                    placeholder="输入 Llama 3.1 70B API 密钥"
-                    className="mb-2 border-indigo-300"
-                  />
-                  <div className="flex space-x-2">
-                    <Button variant="outline" className="flex-1 border-indigo-300 text-indigo-700 hover:bg-indigo-100" onClick={() => handleApiKeySave("Llama 3.1 70B")}>保存</Button>
-                    <Button variant="outline" className="flex-1 border-indigo-300 text-indigo-700 hover:bg-indigo-100" onClick={() => handleApiKeyTest("Llama 3.1 70B")}>测试连接</Button>
-                  </div>
-                </div>
-
-                {/* Gemini 1.5 Flash API 配置 */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-indigo-700 mb-2">Gemini 1.5 Flash API 密钥</label>
-                  <Input
-                    type="password"
-                    value={apiKeys["Gemini 1.5 Flash"]}
-                    onChange={(e) => setApiKeys({...apiKeys, ["Gemini 1.5 Flash"]: e.target.value})}
-                    placeholder="输入 Gemini 1.5 Flash API 密钥"
-                    className="mb-2 border-indigo-300"
-                  />
-                  <div className="flex space-x-2">
-                    <Button variant="outline" className="flex-1 border-indigo-300 text-indigo-700 hover:bg-indigo-100" onClick={() => handleApiKeySave("Gemini 1.5 Flash")}>保存</Button>
-                    <Button variant="outline" className="flex-1 border-indigo-300 text-indigo-700 hover:bg-indigo-100" onClick={() => handleApiKeyTest("Gemini 1.5 Flash")}>测试连接</Button>
-                  </div>
-                </div>
-
-                {/* Qwen API 配置 */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-indigo-700 mb-2">Qwen/Qwen2.5-72B-Instruct API 密钥</label>
-                  <Input
-                    type="password"
-                    value={apiKeys["Qwen/Qwen2.5-72B-Instruct"]}
-                    onChange={(e) => setApiKeys({...apiKeys, ["Qwen/Qwen2.5-72B-Instruct"]: e.target.value})}
-                    placeholder="输入 Qwen/Qwen2.5-72B-Instruct API 密钥"
-                    className="mb-2 border-indigo-300"
-                  />
-                  <div className="flex space-x-2">
-                    <Button variant="outline" className="flex-1 border-indigo-300 text-indigo-700 hover:bg-indigo-100" onClick={() => handleApiKeySave("Qwen/Qwen2.5-72B-Instruct")}>保存</Button>
-                    <Button variant="outline" className="flex-1 border-indigo-300 text-indigo-700 hover:bg-indigo-100" onClick={() => handleApiKeyTest("Qwen/Qwen2.5-72B-Instruct")}>测试连接</Button>
-                  </div>
-                </div>
-              </TabsContent>
-              <TabsContent value="system-prompt">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-indigo-700">启用系统示词</label>
-                  <Switch
-                    checked={isSystemPromptEnabled}
-                    onCheckedChange={handleSystemPromptToggle}
-                  />
-                </div>
-                <Textarea
-                  value={systemPrompt}
-                  onChange={(e) => handleSystemPromptChange(e.target.value)}
-                  placeholder="在这里输入全局系统提示词..."
-                  className="w-full h-32 border-indigo-300"
-                  disabled={!isSystemPromptEnabled}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
+        <Settings
+          isOpen={isSettingsOpen}
+          onClose={closeSettings}
+          apiKeys={apiKeys}
+          onApiKeySave={handleApiKeySave}
+          onApiKeyTest={handleApiKeyTest}
+          onApiKeyChange={(key: ModelType, value: string) => setApiKeys({...apiKeys, [key]: value})}
+          systemPrompt={systemPrompt}
+          isSystemPromptEnabled={isSystemPromptEnabled}
+          onSystemPromptChange={handleSystemPromptChange}
+          onSystemPromptToggle={handleSystemPromptToggle}
+          isVerified={isVerified}
+          onVerify={handleVerify}
+        />
       )}
     </div>
   )
