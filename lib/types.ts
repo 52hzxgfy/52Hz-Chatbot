@@ -6,6 +6,12 @@ export interface VerificationCode {
   isValid: boolean;
 }
 
+export interface VerificationResponse {
+  success: boolean;
+  message: string;
+  code?: string;
+}
+
 export type ModelType = 
   | "Llama 3.1 70B"
   | "Gemini 1.5 Flash"
