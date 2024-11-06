@@ -41,9 +41,32 @@ export const Settings: FC<SettingsProps> = ({
 
   const handleVerify = async () => {
     try {
+      setVerificationError('');
+      
+      if (!verificationCode.trim()) {
+        setVerificationError('请输入验证码');
+        return;
+      }
+
+      const response = await fetch('/api/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: verificationCode }),
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        setVerificationError(data.message || '验证失败');
+        return;
+      }
+
       await onVerify(verificationCode);
     } catch (error) {
-      setVerificationError(error instanceof Error ? error.message : '验证失败');
+      console.error('Verification error:', error);
+      setVerificationError('验证过程发生错误，请重试');
     }
   };
 

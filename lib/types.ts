@@ -10,7 +10,13 @@ export interface VerificationResponse {
   success: boolean;
   message: string;
   code?: string;
-  remainingUses?: number;
+  remainingUses: number;
+}
+
+export interface AdminResponse {
+  success: boolean;
+  message?: string;
+  codes?: VerificationCode[];
 }
 
 export type ModelType = 

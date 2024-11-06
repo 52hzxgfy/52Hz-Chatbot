@@ -497,19 +497,29 @@ export function Page() {
     try {
       const response = await fetch('/api/verify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
       });
-      
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Verification response:', errorText);
+        throw new Error('验证失败，请稍后重试');
+      }
+
       const result = await response.json();
       if (!result.success) {
-        throw new Error(result.message);
+        throw new Error(result.message || '验证失败');
       }
-      
+
       setIsVerified(true);
       localStorage.setItem('isVerified', 'true');
+      alert('验证成功！');
     } catch (error) {
-      throw error;
+      console.error('Verification error:', error);
+      alert(error instanceof Error ? error.message : '验证失败，请稍后重试');
     }
   };
 
